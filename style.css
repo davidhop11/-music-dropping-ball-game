@@ -1,0 +1,16 @@
+body {
+  margin: 0; /* Remove default body margin */
+  overflow: hidden; /* Hide scrollbars if canvas fills window */
+  background-color: black; /* Set the background to black */
+  display: flex; /* Use flexbox for centering */
+  justify-content: center; /* Center canvas horizontally */
+  align-items: center; /* Center canvas vertically */
+  min-height: 100vh; /* Ensure body takes full viewport height */
+}
+
+#gameCanvas {
+  display: block; /* Make canvas a block element */
+  /* The actual width and height will be set via JavaScript */
+  /* Optional: Add a border for visibility during development */
+  /* border: 1px solid grey; */
+}
