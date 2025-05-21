@@ -38,7 +38,9 @@ const platforms = []; // Array to keep track of platform bodies if needed later
 const platformTypes = {
     '1': { color: 'lightblue', noteFrequency: 523.25, restitution: 0.5 }, // C5, Low bounce
     '2': { color: 'lightgreen', noteFrequency: 659.25, restitution: 0.7 }, // E5, Medium bounce
-    '3': { color: 'lightcoral', noteFrequency: 783.99, restitution: 0.9 }  // G5, High bounce
+    '3': { color: 'lightcoral', noteFrequency: 783.99, restitution: 0.9 },  // G5, High bounce
+    '4': { color: 'orange', noteFrequency: 1046.50, restitution: 0.7, isAccelerator: true, boostFactor: 1.5 }, // C6, Accelerator
+    '5': { color: 'rgba(200, 200, 200, 0.7)', noteFrequency: 698.46, restitution: 0.6, isTemporary: true, maxHits: 3 } // F5, Temporary
 };
 let selectedPlatformType = '1'; // Default to type 1
 
@@ -214,6 +216,7 @@ function createPlatform(startX, startY, endX, endY) {
         return;
     }
 
+    const platformData = platformTypes[selectedPlatformType];
     const platform = Bodies.rectangle(
         centerX,
         centerY,
@@ -224,16 +227,28 @@ function createPlatform(startX, startY, endX, endY) {
             angle: angle,
             label: 'platform', // Label for collision detection later
             friction: 0.3, // Add some friction
-            restitution: platformTypes[selectedPlatformType].restitution, // Use type-specific bounciness
+            restitution: platformData.restitution, // Use type-specific bounciness
             // Store the note frequency and color on the body itself
-            noteFrequency: platformTypes[selectedPlatformType].noteFrequency,
-            render: { fillStyle: platformTypes[selectedPlatformType].color }
+            noteFrequency: platformData.noteFrequency,
+            render: { fillStyle: platformData.color },
+            // Custom properties for different platform types
+            isAccelerator: platformData.isAccelerator || false,
+            boostFactor: platformData.boostFactor || 0,
+            isTemporary: platformData.isTemporary || false,
+            maxHits: platformData.maxHits || 0,
+            currentHits: 0 // Renamed from hits, current hits for temporary platforms
         }
     );
 
     platforms.push(platform); // Add to our array
     World.add(world, platform); // Add to the physics world
-    console.log(`Platform created at (${centerX.toFixed(1)}, ${centerY.toFixed(1)}) L:${length.toFixed(1)} A:${angle.toFixed(2)}`);
+    console.log(`Platform created: ID=${platform.id}, Pos=(${centerX.toFixed(1)}, ${centerY.toFixed(1)}), L=${length.toFixed(1)}, A=${angle.toFixed(2)}, Type=${selectedPlatformType}`);
+    if (platform.isAccelerator) {
+        console.log(`  Accelerator props: boostFactor=${platform.boostFactor}`);
+    }
+    if (platform.isTemporary) {
+        console.log(`  Temporary props: maxHits=${platform.maxHits}, currentHits=${platform.currentHits}`);
+    }
 }
 
 // Function to spawn a new ball
@@ -408,6 +423,48 @@ function handleCollisions(event) {
             playNote(frequency, 0.1, volume); // Pass frequency and calculated volume
             score++;
             // console.log(`Score: ${score}, Note: ${frequency}`);
+
+            // Accelerator Platform Logic
+            if (platformBody.isAccelerator) {
+                const boostFactor = platformBody.boostFactor || 1.5; // Default if not set
+                const impulseMagnitude = boostFactor * 0.005; // Adjust 0.005 as needed for desired effect
+                
+                // Log current velocity
+                console.log(`Accelerator Hit! Platform ID: ${platformBody.id}, Ball Vel Before: X=${ballBody.velocity.x.toFixed(3)}, Y=${ballBody.velocity.y.toFixed(3)}, Angle: ${platformBody.angle.toFixed(3)}, BoostFactor: ${boostFactor}`);
+
+                const impulseX = Math.cos(platformBody.angle) * impulseMagnitude;
+                const impulseY = Math.sin(platformBody.angle) * impulseMagnitude;
+
+                Matter.Body.applyForce(ballBody, ballBody.position, { x: impulseX, y: impulseY });
+
+                // Log after applying force - velocity might not update immediately in the same tick for logging,
+                // but the force has been applied. For more accurate post-velocity, log in the next 'afterUpdate' event or simply observe.
+                console.log(`Applied Boost: ImpulseX=${impulseX.toFixed(4)}, ImpulseY=${impulseY.toFixed(4)}`);
+            }
+
+            // Temporary Platform Logic
+            if (platformBody.isTemporary) {
+                platformBody.currentHits++;
+                const baseOpacity = 0.7; // Initial opacity
+                const opacityDropPerHit = 0.5 / platformBody.maxHits; // Total drop of 0.5 spread over maxHits
+                let newOpacity = baseOpacity - (platformBody.currentHits * opacityDropPerHit);
+                newOpacity = Math.max(0.1, newOpacity); // Clamp opacity (minimum 0.1)
+
+                // Assuming the temporary platform's base color is grey (200,200,200)
+                platformBody.render.fillStyle = `rgba(200, 200, 200, ${newOpacity})`;
+                console.log(`Temporary platform ${platformBody.id} hit: ${platformBody.currentHits}/${platformBody.maxHits}, New Opacity: ${newOpacity.toFixed(2)}`);
+
+                if (platformBody.currentHits >= platformBody.maxHits) {
+                    console.log(`Temporary platform ${platformBody.id} reached max hits and will be removed.`);
+                    World.remove(world, platformBody);
+                    const index = platforms.indexOf(platformBody);
+                    if (index > -1) {
+                        platforms.splice(index, 1);
+                    }
+                    // Optional: Play a distinct "shatter" or "disappear" sound here
+                }
+            }
+
         } else if (targetBody) { // Ball hit target
              const points = targetBody.targetScore || 0;
              const note = targetBody.hitNote || 660; // Default note if needed

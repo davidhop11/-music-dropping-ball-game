@@ -7,10 +7,12 @@ A simple web-based game where balls drop from the top, and the player creates pl
 *   **Objective:** Bounce the falling balls off user-drawn platforms to hit the yellow targets that appear on the screen.
 *   **Controls:**
     *   **Draw Platform:** Click and drag the left mouse button on the screen to draw a platform.
-    *   **Select Platform Type:** Press keys '1', '2', or '3' on your keyboard *before* drawing to select different platform types:
+    *   **Select Platform Type:** Press keys '1' through '5' on your keyboard *before* drawing to select different platform types:
         *   **1:** Light Blue (Low Bounce, C5 Note)
         *   **2:** Light Green (Medium Bounce, E5 Note)
         *   **3:** Light Coral (High Bounce, G5 Note)
+        *   **4 (Accelerator Platform):** Orange - Boosts the ball's speed along the platform's angle upon impact (C6 Note).
+        *   **5 (Temporary Platform):** Translucent Grey - Becomes more transparent with each hit and disappears after 3 hits (F5 Note).
     *   **Delete Platform:** Right-click on an existing platform to remove it. This deducts 5 points from your score.
 *   **Scoring:**
     *   Hitting a platform: +1 point
