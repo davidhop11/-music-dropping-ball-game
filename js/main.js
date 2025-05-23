@@ -315,7 +315,66 @@ function drawSelectedType() {
     ctx.font = '20px Arial';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'top';
-    ctx.fillText(`Type: ${selectedPlatformType}`, canvas.width - 20, 20); // Position at top-right
+    const typeText = `Type: ${selectedPlatformType}`;
+    const textMetrics = ctx.measureText(typeText);
+    const textWidth = textMetrics.width;
+    const textHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent; // Approx height
+
+    const iconWidth = 24;
+    const iconHeight = 6;
+    const padding = 10;
+    const iconX = canvas.width - 20 - textWidth - padding - iconWidth;
+    // Align icon top with text top for simplicity, adjust if needed for vertical centering
+    const iconY = 20 + (textHeight / 2) - (iconHeight / 2); // Attempt to vertically center with text
+
+    drawPlatformIcon(selectedPlatformType, iconX, iconY, iconWidth, iconHeight);
+    ctx.fillText(typeText, canvas.width - 20, 20); // Position at top-right
+}
+
+// Function to draw a specific platform type icon
+function drawPlatformIcon(type, x, y, iconWidth, iconHeight) {
+    const platformData = platformTypes[type];
+    if (!platformData) {
+        console.warn(`No platform data found for type: ${type}`);
+        return;
+    }
+
+    const originalFillStyle = ctx.fillStyle; // Save current fill style
+
+    ctx.fillStyle = platformData.color;
+
+    switch (type) {
+        case '4': // Accelerator
+            ctx.fillRect(x, y, iconWidth, iconHeight); // Base orange rectangle
+            ctx.fillStyle = 'white'; // Chevrons color
+            // Draw three small chevrons (filled rectangles for simplicity)
+            // Chevron 1: ctx.fillRect(x + 4, y + 1, 3, iconHeight - 2);
+            // Chevron 2: ctx.fillRect(x + 10, y + 1, 3, iconHeight - 2);
+            // Chevron 3: ctx.fillRect(x + 16, y + 1, 3, iconHeight - 2);
+            // Adjusted for 24x6 iconHeight - 2 = 4
+            const chevronWidth = 3;
+            const chevronHeight = iconHeight - 2; // e.g., 4px if iconHeight is 6
+            const chevronY = y + 1;
+            ctx.fillRect(x + 4, chevronY, chevronWidth, chevronHeight);
+            ctx.fillRect(x + iconWidth/2 - chevronWidth/2, chevronY, chevronWidth, chevronHeight); // Centered chevron
+            ctx.fillRect(x + iconWidth - 4 - chevronWidth, chevronY, chevronWidth, chevronHeight);
+            break;
+        case '5': // Temporary
+            // platformData.color is already rgba(200, 200, 200, 0.7)
+            // Draw three separate rectangular segments
+            const segmentWidth = 6; // Fixed segment width
+            const gap = (iconWidth - (3 * segmentWidth)) / 2; // Calculate gap based on fixed segment width
+            
+            ctx.fillRect(x, y, segmentWidth, iconHeight);
+            ctx.fillRect(x + segmentWidth + gap, y, segmentWidth, iconHeight);
+            ctx.fillRect(x + 2 * (segmentWidth + gap), y, segmentWidth, iconHeight);
+            break;
+        default: // Cases '1', '2', '3' and any other
+            ctx.fillRect(x, y, iconWidth, iconHeight); // Solid rectangle
+            break;
+    }
+
+    ctx.fillStyle = originalFillStyle; // Restore original fill style
 }
 
 // --- Audio Functions ---

@@ -32,6 +32,7 @@ A simple web-based game where balls drop from the top, and the player creates pl
 *   Right-click platform deletion with score penalty.
 *   Dynamic starfield background.
 *   Score and selected platform type displayed on screen.
+*   Visual icon indicator for the currently selected platform type.
 
 ## Running the Game
 
